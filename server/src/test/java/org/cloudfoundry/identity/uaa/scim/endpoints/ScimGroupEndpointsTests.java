@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -335,6 +337,28 @@ public class ScimGroupEndpointsTests extends JdbcTestBase {
         endpoints.listGroups("id,display", "displayName co 'admin'", "created", "ascending", 1, 100);
     }
 
+    @Test
+    public void testListGroupsWithoutMembersAttributes() {
+        SearchResults<?> results = endpoints.listGroups("id,displayName", "id pr", "created", "ascending", 1, 100);
+        validateSearchResults(results, 11);
+        results.getResources().forEach(o -> assertTrue(o instanceof LinkedHashMap));
+        results.getResources().forEach(o -> {
+            LinkedHashMap<?, ?> m = (LinkedHashMap)o;
+            assertFalse(m.containsKey("members"));
+        });
+    }
+    
+    @Test
+    public void testListGroupsWithMembersAttributes() {
+        SearchResults<?> results = endpoints.listGroups("id,members,displayName", "id pr", "created", "ascending", 1, 100);
+        validateSearchResults(results, 11);
+        results.getResources().forEach(o -> assertTrue(o instanceof LinkedHashMap));
+        results.getResources().forEach(o -> {
+            LinkedHashMap<?, ?> m = (LinkedHashMap)o;
+            assertTrue(m.containsKey("members"));
+        });
+    }
+    
     @Test
     public void legacyTestListGroupsWithNullAttributes() {
         validateSearchResults(endpoints.listGroups(null, "displayName co 'admin'", "created", "ascending", 1, 100), 1);

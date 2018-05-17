@@ -57,6 +57,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,13 +122,18 @@ public class ScimGroupEndpoints {
         return false;
     }
 
-    private List<ScimGroup> filterForCurrentUser(List<ScimGroup> input, int startIndex, int count) {
+    private List<ScimGroup> filterForCurrentUser(List<ScimGroup> input, int startIndex, int count, boolean includeMembers) {
         List<ScimGroup> response = new ArrayList<ScimGroup>();
         int expectedResponseSize = Math.min(count, input.size());
         boolean needMore = response.size() < expectedResponseSize;
         while (needMore && startIndex <= input.size()) {
             for (ScimGroup group : UaaPagingUtils.subList(input, startIndex, count)) {
-                group.setMembers(membershipManager.getMembers(group.getId(), null, false));
+                if (includeMembers) {
+                    group.setMembers(membershipManager.getMembers(group.getId(), null, false));
+                } else {
+                    group.setMembers(Collections.emptyList());
+                }
+                
                 response.add(group);
                 needMore = response.size() < expectedResponseSize;
                 if (!needMore) {
@@ -156,7 +162,11 @@ public class ScimGroupEndpoints {
             throw new ScimException("Invalid filter expression: [" + filter + "]", HttpStatus.BAD_REQUEST);
         }
 
-        List<ScimGroup> input = filterForCurrentUser(result, startIndex, count);
+        boolean includeMembers = 
+                StringUtils.hasLength(attributesCommaSeparated) && 
+                StringUtils.countOccurrencesOf(attributesCommaSeparated, "members") > 0;
+        
+        List<ScimGroup> input = filterForCurrentUser(result, startIndex, count, includeMembers);
 
         if (!StringUtils.hasLength(attributesCommaSeparated)) {
             return new SearchResults<>(Arrays.asList(ScimCore.SCHEMAS), input, startIndex, count,
