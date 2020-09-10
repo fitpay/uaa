@@ -210,7 +210,11 @@ public class JdbcScimGroupMembershipManager extends AbstractQueryable<ScimGroupM
     }
 
     @Override
-    public List<ScimGroupMember> getMembers(final String groupId, String filter, boolean includeEntities) throws ScimResourceNotFoundException {
+    public List<ScimGroupMember> getMembers(String groupId, String filter, boolean includeEntities) throws ScimResourceNotFoundException {
+        return getMembers(groupId, filter, includeEntities, null);
+    }
+    @Override
+    public List<ScimGroupMember> getMembers(final String groupId, String filter, boolean includeEntities, Integer pageSizeOverride) throws ScimResourceNotFoundException {
         String scopedFilter;
         if (StringUtils.hasText(filter)) {
             // validate filter syntax
@@ -220,7 +224,7 @@ public class JdbcScimGroupMembershipManager extends AbstractQueryable<ScimGroupM
         else {
             scopedFilter = String.format("group_id eq \"%s\"", groupId);
         }
-        List<ScimGroupMember> result = query(scopedFilter, "member_id", true);
+        List<ScimGroupMember> result = query(scopedFilter, "member_id", true, pageSizeOverride);
 
         if(includeEntities) {
             for(ScimGroupMember member : result) {

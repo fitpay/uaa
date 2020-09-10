@@ -75,7 +75,19 @@ public class RemoteScimUserProvisioning implements ScimUserProvisioning {
 
     @Override
     @SuppressWarnings("unchecked")
+    public List<ScimUser> query(String filter, Integer pageSizeOverride) {
+        return query(filter);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public List<ScimUser> query(String filter, String sortBy, boolean ascending) {
+        return query(filter, sortBy, ascending, null);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<ScimUser> query(String filter, String sortBy, boolean ascending, Integer pageSizeOverride) {
         String order = ascending ? "" : "&sortOrder=descending";
         return restTemplate.getForObject(baseUrl + "/Users?filter={filter}&sortBy={sortBy}" + order, List.class,
                         filter, sortBy);

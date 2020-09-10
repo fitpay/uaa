@@ -26,6 +26,7 @@ import org.cloudfoundry.identity.uaa.scim.exception.ScimResourceAlreadyExistsExc
 import org.cloudfoundry.identity.uaa.util.MapCollector;
 import org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.util.StringUtils;
@@ -40,6 +41,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ScimGroupBootstrap implements InitializingBean {
+
+    @Value("${brian.pageSizeOverride:200}")
+    private Integer pageSizeOverride;
 
     private Map<String, String> groups;
 
@@ -255,7 +259,7 @@ public class ScimGroupBootstrap implements InitializingBean {
         List<ScimGroup> g = scimGroupProvisioning.query(String.format(GROUP_BY_NAME_FILTER, name));
         if (g != null && !g.isEmpty()) {
             ScimGroup gr = g.get(0);
-            gr.setMembers(membershipManager.getMembers(gr.getId(), null, false));
+            gr.setMembers(membershipManager.getMembers(gr.getId(), null, false, pageSizeOverride));
             return gr;
         }
         logger.debug("could not find group with name");
