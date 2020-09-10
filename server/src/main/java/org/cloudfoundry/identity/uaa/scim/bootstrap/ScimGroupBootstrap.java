@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 public class ScimGroupBootstrap implements InitializingBean {
 
-    @Value("${brian.pageSizeOverride:200}")
+    @Value("${bootstrap.pageSizeOverride:200}")
     private Integer pageSizeOverride;
 
     private Map<String, String> groups;
