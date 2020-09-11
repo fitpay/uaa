@@ -5,7 +5,7 @@ buildscript {
     mavenCentral()
     jcenter()
     maven {
-      url 'http://repo.spring.io/plugins-release'
+      url 'https://repo.spring.io/plugins-release'
     }
     maven {
       url 'https://plugins.gradle.org/m2/'
@@ -60,6 +60,13 @@ allprojects {
   repositories {
     mavenCentral()
   }
+}
+
+tasks.withType(Javadoc) {
+  failOnError false
+  options.addStringOption('Xdoclint:none', '-quiet')
+  options.addStringOption('encoding', 'UTF-8')
+  options.addStringOption('charSet', 'UTF-8')
 }
 
 apply plugin: 'org.flywaydb.flyway'
@@ -117,19 +124,19 @@ subprojects {
     from sourceSets.main.allSource
   }
 
-  javadoc {
-    logging.captureStandardError LogLevel.INFO
-    logging.captureStandardOutput LogLevel.INFO // suppress "## warnings" message
-  }
-
-  task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier 'javadoc'
-    from javadoc.destinationDir
-  }
+//  javadoc {
+//    logging.captureStandardError LogLevel.INFO
+//    logging.captureStandardOutput LogLevel.INFO // suppress "## warnings" message
+//  }
+//
+//  task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier 'javadoc'
+//    from javadoc.destinationDir
+//  }
 
   artifacts {
     archives packageSources
-    archives javadocJar
+    // archives javadocJar
   }
   repositories {
     maven { url "http://maven.springframework.org/release" }
