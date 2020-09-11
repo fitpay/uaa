@@ -21,6 +21,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class AbstractQueryable<T> implements Queryable<T> {
 
@@ -34,7 +35,7 @@ public abstract class AbstractQueryable<T> implements Queryable<T> {
 
     private SearchQueryConverter queryConverter = new SimpleSearchQueryConverter();
 
-    private int pageSize = 200;
+    private int defaultPageSize = 200;
 
     protected AbstractQueryable(JdbcTemplate jdbcTemplate, JdbcPagingListFactory pagingListFactory,
                     RowMapper<T> rowMapper) {
@@ -54,12 +55,17 @@ public abstract class AbstractQueryable<T> implements Queryable<T> {
      *
      * @param pageSize the page size to use for backing queries (default 200)
      */
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
+    public void setPageSize(int defaultPageSize) {
+        this.defaultPageSize = defaultPageSize;
     }
 
     public int getPageSize() {
-        return pageSize;
+        return defaultPageSize;
+    }
+
+    private int getPageSize(Integer pageSizeOverride) {
+        return Optional.ofNullable(pageSizeOverride)
+            .orElse(getPageSize());
     }
 
     public int delete(String filter) {
@@ -81,7 +87,18 @@ public abstract class AbstractQueryable<T> implements Queryable<T> {
     }
 
     @Override
+    public List<T> query(String filter, Integer pageSizeOverride) {
+        return query(filter, null, true, pageSizeOverride);
+    }
+
+    @Override
     public List<T> query(String filter, String sortBy, boolean ascending) {
+        return query(filter, sortBy, ascending, null);
+    }
+
+    @Override
+    public List<T> query(String filter, String sortBy, boolean ascending, Integer pageSizeOverride) {
+        int pageSize = getPageSize(pageSizeOverride);
         SearchQueryConverter.ProcessedFilter where = queryConverter.convert(filter, sortBy, ascending);
         logger.debug("Filtering groups with SQL: " + where);
         List<T> result;
